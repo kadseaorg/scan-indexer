@@ -1,0 +1,6 @@
+l2scan-indexer
+.env
+contract/build
+/bin
+.vscode
+.idea
