@@ -21,12 +21,10 @@ jobs:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
 
-    - name: Build and Push Docker Image
-      run: |
-        if [ $GITHUB_REF = "refs/heads/main" ]; then
-          docker build -t kadseaorg/kadscan:main .
-          docker push kadseaorg/kadscan:main
-        elif [ $GITHUB_REF = "refs/heads/dev" ]; then
-          docker build -t kadseaorg/kadscan:dev .
-          docker push kadseaorg/kadscan:dev
-        fi
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v4
+      with:
+        context: .
+        push: true
+        tags: kadseaorg/scan-indexer:${{ steps.vars.outputs.tag }}
+        labels: ${{ steps.meta.outputs.labels }}
