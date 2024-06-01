@@ -194,7 +194,7 @@ func (i *Indexer) StartL2Indexer(worker int, forceStartBlock *uint64) {
 		log.Info().Msgf("L2 Indexer: lastIndexedBlockNumber %d latestBlockNumber %d", lastIndexedBlockNumber, latestBlockNumber)
 
 		if latestBlockNumber > lastIndexedBlockNumber {
-			for n := lastIndexedBlockNumber + 1; n <= latestBlockNumber; n++ {
+			for n := lastIndexedBlockNumber + 1; n < latestBlockNumber-10; n++ {
 				blockNumber := big.NewInt(int64(n)) // Create a new variable to avoid data race
 				pool.Submit(func() {
 					i.handleBlock(blockNumber)
@@ -203,7 +203,7 @@ func (i *Indexer) StartL2Indexer(worker int, forceStartBlock *uint64) {
 			lastIndexedBlockNumber = latestBlockNumber
 		}
 
-		time.Sleep(5 * time.Second) // wait for 5 seconds
+		time.Sleep(3 * time.Second) // wait for 5 seconds
 	}
 
 	// pool.StopAndWait()
