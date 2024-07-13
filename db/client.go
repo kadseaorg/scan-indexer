@@ -1103,6 +1103,47 @@ func (db *Client) HasInternalTransactionByBlockNumber(ctx context.Context, block
 	return count > 0, nil
 }
 
+func (db *Client) HasBlocksByBlockNumber(ctx context.Context, blockNumber *big.Int) (bool, error) {
+	stmt := `SELECT COUNT(number) FROM blocks WHERE number = $1`
+
+	row := db.pool.QueryRow(ctx, stmt, blockNumber)
+
+	var count int
+	err := row.Scan(&count)
+
+	if err != nil {
+		return false, err
+	}
+
+	return count == 1, nil
+}
+
+func (db *Client) GetLatestCache(ctx context.Context) (uint64, error) {
+	var blockNumber sql.NullInt64
+	err := db.pool.QueryRow(ctx, "SELECT number FROM cache").Scan(&blockNumber)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return 0, nil
+		}
+		log.Error().Msgf("Error getting latest block number: %s", err)
+		return 0, err
+	}
+	if !blockNumber.Valid {
+		// handle the case where the number is NULL in the DB
+		return 0, nil
+	}
+	return uint64(blockNumber.Int64), nil
+}
+
+func (db *Client) UpdateCache(ctx context.Context, blockNumber *big.Int) error {
+	sqlStmt := `UPDATE cache SET number = $1 `
+	_, err := db.pool.Exec(ctx, sqlStmt, blockNumber)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (db *Client) HasInternalTransactionCountByBlockNumber(ctx context.Context, blockNumber string) (bool, error) {
 	stmt := `SELECT internal_transaction_count FROM blocks WHERE number = $1`
 	row := db.pool.QueryRow(ctx, stmt, blockNumber)

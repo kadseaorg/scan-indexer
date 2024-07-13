@@ -101,7 +101,6 @@ func (i *Indexer) Start(ctx context.Context,
 	inscriptionForceStartBlock *uint64,
 	recoveryStartBlock *uint64,
 ) {
-
 	go i.StartMultiL1Chain(worker, l1ForceStartBlock, l2ForceStartBlock)
 	go i.StartL2Indexer(worker, l2ForceStartBlock)
 	go i.L2RecoveryExecutor(worker, checkMisBatchedBlocks)
@@ -115,6 +114,7 @@ func (i *Indexer) Start(ctx context.Context,
 	go i.StartL1BridgeDepositIndexerForZKSyncEra(worker, l1BridgeForceStartBlock)
 	go i.StartL1BridgeWithdrawIndexerForZKSyncEra(worker, l1BridgeForceStartBlock)
 	go i.StartInscriptionIndexer(worker, inscriptionForceStartBlock)
+	go i.L2MonitorExecutor(worker)
 
 	<-ctx.Done()
 }
@@ -191,10 +191,12 @@ func (i *Indexer) StartL2Indexer(worker int, forceStartBlock *uint64) {
 			os.Exit(-1)
 		}
 
+		latestBlockNumber = latestBlockNumber - 10
+
 		log.Info().Msgf("L2 Indexer: lastIndexedBlockNumber %d latestBlockNumber %d", lastIndexedBlockNumber, latestBlockNumber)
 
 		if latestBlockNumber > lastIndexedBlockNumber {
-			for n := lastIndexedBlockNumber + 1; n < latestBlockNumber-10; n++ {
+			for n := lastIndexedBlockNumber; n < latestBlockNumber; n++ {
 				blockNumber := big.NewInt(int64(n)) // Create a new variable to avoid data race
 				pool.Submit(func() {
 					i.handleBlock(blockNumber)
