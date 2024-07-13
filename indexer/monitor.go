@@ -29,8 +29,6 @@ func (i *Indexer) L2MonitorExecutor(worker int) {
 			return
 		}
 
-		log.Info().Msgf("L2 Monitor: lastIndexedBlockNumber %d latestCacheBlockNumber %d", lastIndexedBlockNumber, lastCacheBlockNumber)
-
 		if lastIndexedBlockNumber > lastCacheBlockNumber {
 			for n := lastCacheBlockNumber; n < lastIndexedBlockNumber; n++ {
 				blockNumber := big.NewInt(int64(n)) // Create a new variable to avoid data race
@@ -42,6 +40,9 @@ func (i *Indexer) L2MonitorExecutor(worker int) {
 						i.handleBlock(blockNumber)
 					})
 				}
+
+				log.Info().Msgf("L2 Monitor: lastIndexedBlockNumber %d latestCacheBlockNumber %d", lastIndexedBlockNumber, blockNumber)
+
 			}
 
 			lastCacheBlockNumber = lastIndexedBlockNumber
